@@ -1,0 +1,15 @@
+Rest API -json
+
+
+GET / users  -HTML Docuemnt Render => computer
+GET /api/users  -List all users=> mobaile
+
+
+GET /api/user/1  - get the user with id
+GET /api/user/2  - get the user with id
+
+POST /api/users  - Create new user
+
+PATCH /api/users/1 -edit the user with id 1
+
+DELETE /api/users/1 -DElete the user whith ID 1
