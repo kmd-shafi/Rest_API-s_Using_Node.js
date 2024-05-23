@@ -13,3 +13,11 @@ POST /api/users  - Create new user
 PATCH /api/users/1 -edit the user with id 1
 
 DELETE /api/users/1 -DElete the user whith ID 1
+//////////////////////////////////////////////////////////////////
+
+mongoose
+
+schema = define the structure
+    schema-model
+    connect
+    using model we do CRUD operstion

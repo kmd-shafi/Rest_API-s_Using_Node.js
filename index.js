@@ -1,50 +1,82 @@
 const express = require("express");
 const app = express();
 const PORT = 3000;
-const users = require("./MOCK_DATA.json");
+// const users = require("./MOCK_DATA.json");
 app.use(express.urlencoded({ extended: false }));
-const fs = require("fs");
+// const fs = require("fs");
+const mongoose = require("mongoose");
 
-app.get("/users", (req, res) => {
+// mongoose connection
+mongoose
+  .connect("mongodb://127.0.0.1:27017/youtube-app-1")
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.log("connection failed", err));
+
+//schema
+
+const userSchema = new mongoose.Schema(
+  {
+    firstName: {
+      type: String,
+      required: true,
+    },
+    lastName: {
+      type: String,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    gender: {
+      type: String,
+    },
+    jobTitle: {
+      type: String,
+    },
+  },
+  { timestamps: true }
+);
+
+const User = mongoose.model("User", userSchema);
+//////////////////////////////////////
+app.get("/users", async (req, res) => {
+  let allDbUsers = await User.find({});
   const html = `<ul>
-${users.map((user) => `<li>${user.first_name}</li>`).join("")}
+${allDbUsers.map((user) => `<li>${user.firstName}-${user.email}</li>`).join("")}
 </ul>`;
   return res.send(html);
 });
 
-app.get("/api/users", (req, res) => {
-  return res.send(users);
+app.get("/api/users", async (req, res) => {
+  const allDbUsers = await User.find({});
+  return res.send(allDbUsers);
 });
 
 app
   .route("/api/users/:id")
-  .get((req, res) => {
-    let id = Number(req.params.id);
-
-    const user = users.find((user) => user.id == id);
+  .get(async (req, res) => {
+    const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ Error: "User not found" });
     }
-    return res.send(user);
+    return res.json(user);
   })
-  .patch((req, res) => {
-    //logic
+  .patch(async (req, res) => {
+    await User.findByIdAndUpdate(req.params.id, { lastName: "KATTUBADI" });
     return res.json({
-      process: "pending",
+      process: "success",
     });
   })
-  .delete((req, res) => {
-    //logic
+  .delete(async (req, res) => {
+    await User.findByIdAndDelete(req.params.id);
     return res.json({
-      process: "pending",
+      process: "success",
     });
   });
 
-app.post("/api/users", (req, res) => {
-  //logic
+app.post("/api/users", async (req, res) => {
   const body = req.body;
-
-  users.push({ ...body, id: users.length + 1 });
   if (
     !body ||
     !body.first_name ||
@@ -58,12 +90,16 @@ app.post("/api/users", (req, res) => {
       message: "please provide all fields",
     });
   }
-  fs.writeFile("MOCK_DATA.json", JSON.stringify(users), (err, data) => {
-    return res.status(201).json({
-      status: "success",
-      id: users.length,
-    });
+  const result = await User.create({
+    firstName: body.first_name,
+    lastName: body.last_name,
+    email: body.email,
+    gender: body.gender,
+    jobTitle: body.job_title,
   });
-  // console.log("BODY", body);
+  console.log(result);
+  return res.status(201).json({
+    msg: "success",
+  });
 });
 app.listen(PORT, () => console.log(`server is running on port ${PORT}`));
